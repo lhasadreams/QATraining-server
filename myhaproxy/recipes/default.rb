@@ -4,17 +4,20 @@
 #
 # Copyright:: 2017, The Authors, All Rights Reserved.
 
-node.default['haproxy']['members'] = [
-{
-'hostname' => 'ec2-54-171-90-124.eu-west-1.compute.amazonaws.com',
-'ipaddress' => '54.171.90.124',
-'port' => 80,
-'ssl_port' => 80
-}, {
-'hostname' => 'ec2-54-171-64-75.eu-west-1.compute.amazonaws.com',
-'ipaddress' => '54.171.64.75',
-'port' => 80,
-'ssl_port' => 80
-}]
+all_web_nodes = search('node',"role:web AND chef_environment:#{node.chef_environment}")
+
+members = []
+
+all_web_nodes.each do |web_node|
+  member = {
+    'hostname' => web_node['cloud']['public_hostname'],
+    'ipaddress' => web_node['cloud']['public_ipv4'],
+    'port' => 80,
+    'ssl_port' => 80
+  }
+  members.push(member)
+end
+
+node.default['haproxy']['members'] = members
 
 include_recipe 'haproxy::default'
